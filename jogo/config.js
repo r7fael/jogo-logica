@@ -1,0 +1,4 @@
+window.LOGIC_BREACH_CONFIG = window.LOGIC_BREACH_CONFIG || {
+  SUPABASE_URL: "",
+  SUPABASE_ANON_KEY: "",
+};
