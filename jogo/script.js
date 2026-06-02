@@ -84,12 +84,12 @@ const missionPool = [
     difficulty: "Avançado",
     seconds: 210,
     scene: "biometric",
-    expected: "D <-> V",
+    expected: "D <-> B",
     objective:
       "O acesso de diagnóstico deve estar ativo se e somente se a verificação biométrica estiver válida.",
     variables: {
       D: { label: "diagnóstico ativo", value: true },
-      V: { label: "biometria válida", value: true },
+      B: { label: "biometria válida", value: true },
     },
   },
   {
@@ -990,7 +990,7 @@ function updateLogicFlow(raw) {
 function chipType(piece) {
   const normalized = piece.toUpperCase();
   if (["¬", "!", "~", "NOT", "NAO", "NÃO"].includes(normalized)) return "negation";
-  if (["∧", "∨", "→", "↔", "AND", "OR", "E", "OU", "->", "<->", "&", "|", "^"].includes(normalized)) {
+  if (["∧", "∨", "→", "↔", "AND", "OR", "E", "OU", "V", "->", "<->", "&", "|", "^"].includes(normalized)) {
     return "operator";
   }
   return "";
@@ -1396,7 +1396,7 @@ function tokenize(input) {
         tokens.push({ type: tokenTypes.NOT, value: "¬" });
       } else if (value === "AND" || value === "E") {
         tokens.push({ type: tokenTypes.AND, value: "∧" });
-      } else if (value === "OR" || value === "OU") {
+      } else if (value === "OR" || value === "OU" || value === "V") {
         tokens.push({ type: tokenTypes.OR, value: "∨" });
       } else {
         tokens.push({ type: tokenTypes.VAR, value });
