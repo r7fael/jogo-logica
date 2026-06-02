@@ -562,6 +562,15 @@ function getSupabaseClient() {
   return state.supabaseClient;
 }
 
+function withTimeout(promise, milliseconds, timeoutValue) {
+  return Promise.race([
+    promise.catch(() => timeoutValue),
+    new Promise((resolve) => {
+      setTimeout(() => resolve(timeoutValue), milliseconds);
+    }),
+  ]);
+}
+
 function startGame() {
   clearInterval(state.timerId);
   clearTimeout(state.defenderTimeoutId);
@@ -814,15 +823,45 @@ async function joinMultiplayerRoom(role, requestedCode = "") {
   channel.on("presence", { event: "sync" }, updatePresenceList);
   channel.on("broadcast", { event: "game" }, handleRoomEvent);
   channel.subscribe(async (status) => {
+    if (state.roomChannel !== channel) return;
+
+    if (status === "CHANNEL_ERROR" || status === "TIMED_OUT") {
+      setMultiplayerStatus(
+        `Nao foi possivel conectar na sala ${roomCode}. Verifique a URL/chave do Supabase e se Realtime esta ativo.`,
+        "error",
+      );
+      await leaveMultiplayerRoom(false);
+      state.mode = "single";
+      state.role = "attacker";
+      return;
+    }
+
+    if (status === "CLOSED") return;
+
     if (status !== "SUBSCRIBED") return;
-    await channel.track({
-      playerId: state.playerId,
-      name: state.playerName,
-      role: state.role,
-    });
 
     showGameShell();
     setMultiplayerStatus(`Sala ${roomCode} conectada.`, "success");
+
+    const trackStatus = await withTimeout(
+      channel.track({
+        playerId: state.playerId,
+        name: state.playerName,
+        role: state.role,
+      }),
+      5000,
+      "timed_out",
+    );
+
+    if (trackStatus !== "ok") {
+      setMultiplayerStatus(
+        `Sala ${roomCode} conectada, mas a presenca nao confirmou. O jogo vai tentar sincronizar mesmo assim.`,
+        "error",
+      );
+    }
+
+    if (state.roomChannel !== channel) return;
+    updatePresenceList();
 
     if (role === "attacker") {
       startGame();
