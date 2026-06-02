@@ -109,7 +109,7 @@ const missionPool = [
     },
   },
   {
-    title: "Sensor noturno",
+    title: "Sensor diurno",
     difficulty: "Inicial",
     seconds: 120,
     scene: "door",
@@ -133,14 +133,14 @@ const missionPool = [
     },
   },
   {
-    title: "Camera cega",
+    title: "Câmera cega",
     difficulty: "Inicial",
     seconds: 115,
     scene: "alarm",
     expected: "NOT C",
-    objective: "Avance apenas quando a camera de guarda nao estiver ligada.",
+    objective: "Avance apenas quando a câmera de guarda não estiver ligada.",
     variables: {
-      C: { label: "camera de guarda ligada", value: false },
+      C: { label: "câmera de guarda ligada", value: false },
     },
   },
   {
@@ -149,9 +149,9 @@ const missionPool = [
     seconds: 135,
     scene: "card",
     expected: "U AND P",
-    objective: "Libere a sessao somente quando usuario e PIN forem validados.",
+    objective: "Libere a sessão somente quando usuário e PIN forem validados.",
     variables: {
-      U: { label: "usuario validado", value: true },
+      U: { label: "usuário validado", value: true },
       P: { label: "PIN validado", value: true },
     },
   },
@@ -161,10 +161,10 @@ const missionPool = [
     seconds: 145,
     scene: "server",
     expected: "(G OR M) AND NOT L",
-    objective: "Use a rota se o gateway ou o modo manual estiver disponivel, sem bloqueio local.",
+    objective: "Use a rota somente se o bloqueio local estiver inativo e pelo menos uma rota estiver disponível: gateway ou modo manual.",
     variables: {
-      G: { label: "gateway disponivel", value: false },
-      M: { label: "modo manual disponivel", value: true },
+      G: { label: "gateway disponível", value: false },
+      M: { label: "modo manual disponível", value: true },
       L: { label: "bloqueio local ativo", value: false },
     },
   },
@@ -174,7 +174,7 @@ const missionPool = [
     seconds: 140,
     scene: "shield",
     expected: "F AND NOT Q",
-    objective: "A conexao passa se o filtro estiver ativo e a quarentena estiver desligada.",
+    objective: "A conexão passa somente quando o filtro estiver ativo e a quarentena estiver desligada.",
     variables: {
       F: { label: "filtro ativo", value: true },
       Q: { label: "quarentena ligada", value: false },
@@ -186,11 +186,11 @@ const missionPool = [
     seconds: 145,
     scene: "vault",
     expected: "B OR (A AND T)",
-    objective: "Abra o backup se houver liberacao direta ou autorizacao com token valido.",
+    objective: "Abra o backup quando houver liberação direta, ou quando autorização aprovada e token válido estiverem juntos.",
     variables: {
-      B: { label: "liberacao direta", value: false },
-      A: { label: "autorizacao aprovada", value: true },
-      T: { label: "token valido", value: true },
+      B: { label: "liberação direta", value: false },
+      A: { label: "autorização aprovada", value: true },
+      T: { label: "token válido", value: true },
     },
   },
   {
@@ -199,22 +199,22 @@ const missionPool = [
     seconds: 165,
     scene: "server",
     expected: "(P -> T) AND P",
-    objective: "Ative o proxy quando a regra exigir token para proxy ativo, e o proxy estiver ativo.",
+    objective: "Valide o proxy somente se duas regras forem verdadeiras: o proxy está ativo; e, se o proxy está ativo, há token presente.",
     variables: {
       P: { label: "proxy ativo", value: true },
       T: { label: "token presente", value: true },
     },
   },
   {
-    title: "Chave temporaria",
+    title: "Chave temporária",
     difficulty: "Intermediário",
     seconds: 165,
     scene: "vault",
     expected: "K -> NOT E",
-    objective: "Se a chave temporaria estiver ativa, a emergencia nao pode estar ativa.",
+    objective: "Se a chave temporária estiver ativa, então a emergência não pode estar ativa.",
     variables: {
-      K: { label: "chave temporaria ativa", value: false },
-      E: { label: "emergencia ativa", value: true },
+      K: { label: "chave temporária ativa", value: false },
+      E: { label: "emergência ativa", value: true },
     },
   },
   {
@@ -223,10 +223,10 @@ const missionPool = [
     seconds: 170,
     scene: "shield",
     expected: "A <-> R",
-    objective: "A auditoria deve estar ativa se e somente se o relatorio estiver aberto.",
+    objective: "A auditoria deve estar ativa se e somente se o relatório estiver aberto.",
     variables: {
       A: { label: "auditoria ativa", value: false },
-      R: { label: "relatorio aberto", value: false },
+      R: { label: "relatório aberto", value: false },
     },
   },
   {
@@ -235,11 +235,11 @@ const missionPool = [
     seconds: 175,
     scene: "biometric",
     expected: "(C AND S) OR (M AND NOT B)",
-    objective: "Entre pelo canal cifrado seguro ou por manutencao sem bloqueio.",
+    objective: "Entre por uma destas rotas: canal cifrado com selo seguro, ou modo manutenção sem bloqueio ativo.",
     variables: {
       C: { label: "canal cifrado", value: true },
       S: { label: "selo seguro", value: true },
-      M: { label: "modo manutencao", value: false },
+      M: { label: "modo manutenção", value: false },
       B: { label: "bloqueio ativo", value: true },
     },
   },
@@ -249,11 +249,11 @@ const missionPool = [
     seconds: 190,
     scene: "shield",
     expected: "(I AND NOT B) OR (M AND F)",
-    objective: "Passe se houver isolamento sem bloqueio ou manutencao com firewall ativo.",
+    objective: "Passe por uma destas rotas: isolamento ativo sem bloqueio, ou manutenção ativa com firewall ativo.",
     variables: {
       I: { label: "isolamento ativo", value: true },
       B: { label: "bloqueio ativo", value: false },
-      M: { label: "manutencao ativa", value: false },
+      M: { label: "manutenção ativa", value: false },
       F: { label: "firewall ativo", value: true },
     },
   },
@@ -263,7 +263,7 @@ const missionPool = [
     seconds: 200,
     scene: "card",
     expected: "(H <-> T) AND (H OR R)",
-    objective: "Sincronize quando handshake e token coincidirem, com handshake ou rota reserva disponivel.",
+    objective: "Sincronize somente se handshake e token tiverem o mesmo estado, e além disso houver handshake aceito ou rota reserva aberta.",
     variables: {
       H: { label: "handshake aceito", value: true },
       T: { label: "token aceito", value: true },
@@ -276,26 +276,26 @@ const missionPool = [
     seconds: 200,
     scene: "alarm",
     expected: "(A OR B) AND (NOT C OR D)",
-    objective: "Acesse por um dos canais autorizados e sem conflito critico, ou com desvio ativo.",
+    objective: "Acesse somente se algum canal estiver autorizado e, além disso, não houver conflito crítico ou houver desvio ativo.",
     variables: {
       A: { label: "canal alfa autorizado", value: false },
       B: { label: "canal beta autorizado", value: true },
-      C: { label: "conflito critico", value: true },
+      C: { label: "conflito crítico", value: true },
       D: { label: "desvio ativo", value: true },
     },
   },
   {
-    title: "Sequencia de quorum",
+    title: "Sequência de quórum",
     difficulty: "Avançado",
     seconds: 205,
     scene: "vault",
     expected: "(A AND B) OR (C AND NOT D)",
-    objective: "Abra com quorum alfa completo ou quorum alternativo sem divergencia.",
+    objective: "Abra quando as assinaturas alfa e beta estiverem aprovadas, ou quando o quórum alternativo estiver aprovado sem divergência detectada.",
     variables: {
-      A: { label: "assinatura alfa", value: true },
-      B: { label: "assinatura beta", value: false },
-      C: { label: "assinatura alternativa", value: true },
-      D: { label: "divergencia detectada", value: false },
+      A: { label: "assinatura alfa aprovada", value: true },
+      B: { label: "assinatura beta aprovada", value: false },
+      C: { label: "quórum alternativo aprovado", value: true },
+      D: { label: "divergência detectada", value: false },
     },
   },
   {
@@ -304,58 +304,58 @@ const missionPool = [
     seconds: 235,
     scene: "core",
     expected: "((A AND T) OR (M AND S)) AND NOT R",
-    objective: "Invada pela raiz autenticada ou manutencao segura, sem rastreamento ativo.",
+    objective: "Invada somente se não houver rastreamento ativo e houver uma destas rotas: administrador autenticado com token raiz válido, ou manutenção aberta com selo seguro.",
     variables: {
-      A: { label: "admin autenticado", value: true },
-      T: { label: "token raiz valido", value: true },
-      M: { label: "manutencao aberta", value: false },
+      A: { label: "administrador autenticado", value: true },
+      T: { label: "token raiz válido", value: true },
+      M: { label: "manutenção aberta", value: false },
       S: { label: "selo seguro", value: true },
       R: { label: "rastreamento ativo", value: false },
     },
   },
   {
-    title: "Corte de emergencia",
+    title: "Corte de emergência",
     difficulty: "Final",
     seconds: 240,
     scene: "core",
     expected: "(E AND NOT F) OR (A AND T AND NOT L)",
-    objective: "Assuma o nucleo por emergencia sem firewall ou por admin com token e sem trava local.",
+    objective: "Assuma o núcleo por uma destas rotas: emergência ativa sem firewall ligado, ou administrador conectado com token mestre válido e trava local inativa.",
     variables: {
-      E: { label: "emergencia ativa", value: false },
+      E: { label: "emergência ativa", value: false },
       F: { label: "firewall ligado", value: true },
-      A: { label: "admin conectado", value: true },
-      T: { label: "token mestre valido", value: true },
+      A: { label: "administrador conectado", value: true },
+      T: { label: "token mestre válido", value: true },
       L: { label: "trava local ativa", value: false },
     },
   },
   {
-    title: "Nucleo redundante",
+    title: "Núcleo redundante",
     difficulty: "Final",
     seconds: 245,
     scene: "core",
     expected: "(P AND Q AND NOT R) OR (S AND (T OR M))",
-    objective: "Controle o nucleo por par redundante sem risco ou por selo seguro com token ou manutencao.",
+    objective: "Controle o núcleo por uma destas rotas: processo primário e secundário ativos sem risco detectado, ou selo seguro junto de pelo menos um destes itens: token operacional ou manutenção ativa.",
     variables: {
-      P: { label: "processo primario ativo", value: true },
-      Q: { label: "processo secundario ativo", value: true },
+      P: { label: "processo primário ativo", value: true },
+      Q: { label: "processo secundário ativo", value: true },
       R: { label: "risco detectado", value: false },
       S: { label: "selo seguro", value: false },
       T: { label: "token operacional", value: true },
-      M: { label: "manutencao ativa", value: false },
+      M: { label: "manutenção ativa", value: false },
     },
   },
   {
-    title: "Operacao eclipse",
+    title: "Operação eclipse",
     difficulty: "Final",
     seconds: 250,
     scene: "core",
     expected: "((A -> T) AND (M <-> S) AND NOT F) OR B",
-    objective: "Finalize se a cadeia de permissao estiver coerente e sem firewall, ou se houver bypass mestre.",
+    objective: "Finalize se houver bypass mestre, ou se estas três regras forem verdadeiras: administrador ativo exige token entregue; manutenção ativa coincide com sinal de manutenção; e firewall está inativo.",
     variables: {
-      A: { label: "admin ativo", value: true },
+      A: { label: "administrador ativo", value: true },
       T: { label: "token entregue", value: true },
-      M: { label: "manutencao ativa", value: false },
-      S: { label: "sinal de manutencao", value: false },
+      M: { label: "manutenção ativa", value: false },
+      S: { label: "sinal de manutenção", value: false },
       F: { label: "firewall ativo", value: false },
       B: { label: "bypass mestre", value: false },
     },
@@ -365,7 +365,12 @@ const missionPool = [
 const ERROR_TIME_PENALTY = 5;
 const DEFENDER_BASE_AMBUSH_CHANCE = 0.12;
 const DEFENDER_MAX_AMBUSH_CHANCE = 0.65;
-const DEFENDER_MINIGAME_SECONDS = 10;
+const MAZE_LEVELS = [
+  { size: 9, seconds: 22, label: "Rota curta" },
+  { size: 11, seconds: 20, label: "Rota instável" },
+  { size: 13, seconds: 18, label: "Rota fragmentada" },
+  { size: 15, seconds: 16, label: "Rota crítica" },
+];
 const SUPABASE_URL = window.LOGIC_BREACH_CONFIG?.SUPABASE_URL ?? "";
 const SUPABASE_ANON_KEY = window.LOGIC_BREACH_CONFIG?.SUPABASE_ANON_KEY ?? "";
 const RUN_DIFFICULTY_SEQUENCE = [
@@ -399,8 +404,10 @@ const state = {
   timerId: null,
   defenderTimeoutId: null,
   miniTimerId: null,
-  miniRemainingSeconds: DEFENDER_MINIGAME_SECONDS,
-  miniAnswer: false,
+  miniRemainingSeconds: MAZE_LEVELS[0].seconds,
+  miniMaze: null,
+  miniMazeLabel: MAZE_LEVELS[0].label,
+  miniPlayer: { row: 1, col: 1 },
   miniGameActive: false,
   startedAt: Date.now(),
 };
@@ -441,6 +448,7 @@ const elements = {
   miniTimer: document.querySelector("#miniTimer"),
   miniQuestion: document.querySelector("#miniQuestion"),
   miniValues: document.querySelector("#miniValues"),
+  miniMaze: document.querySelector("#miniMaze"),
   multiplayerPanel: document.querySelector("#multiplayerPanel"),
   roomInfo: document.querySelector("#roomInfo"),
   playersList: document.querySelector("#playersList"),
@@ -508,6 +516,8 @@ function showModeScreen() {
   clearInterval(state.timerId);
   clearTimeout(state.defenderTimeoutId);
   clearInterval(state.miniTimerId);
+  state.miniGameActive = false;
+  state.miniMaze = null;
   elements.gameShell.hidden = true;
   elements.modeScreen.hidden = false;
   elements.endModal.hidden = true;
@@ -561,6 +571,7 @@ function startGame() {
   state.score = 0;
   state.trace = 0;
   state.miniGameActive = false;
+  state.miniMaze = null;
   state.startedAt = Date.now();
   elements.endModal.hidden = true;
   elements.defenderModal.hidden = true;
@@ -577,6 +588,7 @@ function loadMission(options = {}) {
     state.remainingSeconds = mission.seconds;
   }
   state.miniGameActive = false;
+  state.miniMaze = null;
   if (resetInput) {
     elements.input.value = "";
   }
@@ -990,7 +1002,7 @@ function updateLogicFlow(raw) {
 function chipType(piece) {
   const normalized = piece.toUpperCase();
   if (["¬", "!", "~", "NOT", "NAO", "NÃO"].includes(normalized)) return "negation";
-  if (["∧", "∨", "→", "↔", "AND", "OR", "E", "OU", "V", "->", "<->", "&", "|", "^"].includes(normalized)) {
+  if (["∧", "∨", "→", "↔", "AND", "OR", "OU", "->", "<->", "&", "|", "^"].includes(normalized)) {
     return "operator";
   }
   return "";
@@ -1100,16 +1112,18 @@ function triggerDefenderMinigame() {
 }
 
 function openDefenderMinigame(challenge) {
+  const mazeChallenge = challenge?.maze ? challenge : createDefenderChallenge();
+  const fallbackLevel = currentMazeLevel();
   state.miniGameActive = true;
-  state.miniAnswer = challenge.answer;
-  state.miniRemainingSeconds = DEFENDER_MINIGAME_SECONDS;
-  elements.miniQuestion.textContent = `Resolva antes do defensor expulsar voce: ${challenge.question}`;
-  elements.miniValues.innerHTML = challenge.values
-    .map(([name, value]) => `<span><code>${name}</code>${stateLabel(value)}</span>`)
-    .join("");
+  state.miniMaze = mazeChallenge.maze;
+  state.miniMazeLabel = mazeChallenge.label ?? fallbackLevel.label;
+  state.miniPlayer = { ...mazeChallenge.start };
+  state.miniRemainingSeconds = mazeChallenge.seconds ?? fallbackLevel.seconds;
+  elements.miniQuestion.textContent = `${state.miniMazeLabel}: leve o pulso de invasão até a saída antes do defensor fechar a rota.`;
+  renderMazeChallenge();
   elements.miniTimer.textContent = `${state.miniRemainingSeconds}s`;
   elements.defenderModal.hidden = false;
-  addLog("[DEFESA] Contra-ataque lógico detectado. Resolva o minigame ou perca tudo.", "error");
+  addLog("[DEFESA] Contra-ataque em labirinto detectado. Escape da rota ou perca tudo.", "error");
   pulseStage("error");
 
   clearInterval(state.miniTimerId);
@@ -1123,45 +1137,91 @@ function openDefenderMinigame(challenge) {
 }
 
 function createDefenderChallenge() {
-  const mission = currentMission();
-  const values = valuesFromMission(mission);
-  const names = Object.keys(values);
-  const first = names[Math.floor(Math.random() * names.length)];
-  const secondChoices = names.filter((name) => name !== first);
-  const second = secondChoices[Math.floor(Math.random() * secondChoices.length)] ?? first;
-  const patterns = [
-    `${first} AND NOT ${second}`,
-    `${first} OR ${second}`,
-    `${first} -> ${second}`,
-    `${first} <-> ${second}`,
-    `NOT ${first} OR ${second}`,
-  ];
-  const expression = patterns[Math.floor(Math.random() * patterns.length)];
+  const level = currentMazeLevel();
+  const mazeSize = level.size;
+  const start = { row: 1, col: 1 };
+  const exit = { row: mazeSize - 2, col: mazeSize - 2 };
+  const maze = Array.from({ length: mazeSize }, () => Array(mazeSize).fill("#"));
+
+  function carve(row, col) {
+    maze[row][col] = ".";
+    shuffled([
+      [-2, 0],
+      [2, 0],
+      [0, -2],
+      [0, 2],
+    ]).forEach(([rowDelta, colDelta]) => {
+      const nextRow = row + rowDelta;
+      const nextCol = col + colDelta;
+      if (nextRow <= 0 || nextRow >= mazeSize - 1 || nextCol <= 0 || nextCol >= mazeSize - 1) return;
+      if (maze[nextRow][nextCol] !== "#") return;
+      maze[row + rowDelta / 2][col + colDelta / 2] = ".";
+      carve(nextRow, nextCol);
+    });
+  }
+
+  carve(start.row, start.col);
+  maze[start.row][start.col] = "S";
+  maze[exit.row][exit.col] = "X";
+
   return {
-    answer: evaluate(parse(expression), values),
-    question: `${displayExpression(expression)} = ?`,
-    values: names.map((name) => [name, values[name]]),
+    maze: maze.map((row) => row.join("")),
+    start,
+    exit,
+    seconds: level.seconds,
+    label: level.label,
   };
 }
 
-function displayExpression(expression) {
-  return expression
-    .replace(/\bNOT\b/g, "¬")
-    .replace(/\bAND\b/g, "∧")
-    .replace(/\bOR\b/g, "∨")
-    .replace(/<->/g, "↔")
-    .replace(/->/g, "→");
+function currentMazeLevel() {
+  const maxMissionIndex = Math.max(1, state.activeMissions.length - 1);
+  const progress = state.missionIndex / maxMissionIndex;
+  const levelIndex = Math.min(MAZE_LEVELS.length - 1, Math.floor(progress * MAZE_LEVELS.length));
+  return MAZE_LEVELS[levelIndex];
 }
 
-function answerDefenderMinigame(answer) {
+function renderMazeChallenge() {
   if (!state.miniGameActive) return;
-  if (answer !== state.miniAnswer) {
-    failDefenderMinigame("Resposta incorreta no contra-ataque.");
-    return;
-  }
+  elements.miniMaze.innerHTML = "";
+  elements.miniMaze.style.setProperty("--maze-size", state.miniMaze.length);
 
+  state.miniMaze.forEach((row, rowIndex) => {
+    [...row].forEach((cell, colIndex) => {
+      const tile = document.createElement("span");
+      const isPlayer = state.miniPlayer.row === rowIndex && state.miniPlayer.col === colIndex;
+      tile.className = `maze-cell ${cell === "#" ? "wall" : "path"} ${cell === "X" ? "exit" : ""} ${
+        isPlayer ? "player" : ""
+      }`;
+      tile.textContent = cell === "X" ? "◆" : "";
+      elements.miniMaze.appendChild(tile);
+    });
+  });
+
+  elements.miniValues.innerHTML = `
+    <span><code>${state.miniMaze.length}x${state.miniMaze.length}</code>${state.miniMazeLabel}</span>
+    <span><code>SAÍDA</code>rota segura</span>
+  `;
+}
+
+function moveMazePlayer(rowDelta, colDelta) {
+  if (!state.miniGameActive || !state.miniMaze) return;
+  const nextRow = state.miniPlayer.row + rowDelta;
+  const nextCol = state.miniPlayer.col + colDelta;
+  const nextCell = state.miniMaze[nextRow]?.[nextCol];
+  if (!nextCell || nextCell === "#") return;
+
+  state.miniPlayer = { row: nextRow, col: nextCol };
+  renderMazeChallenge();
+  if (nextCell === "X") {
+    completeDefenderMinigame();
+  }
+}
+
+function completeDefenderMinigame() {
+  if (!state.miniGameActive) return;
   clearInterval(state.miniTimerId);
   state.miniGameActive = false;
+  state.miniMaze = null;
   elements.defenderModal.hidden = true;
   addLog("[DEFESA] Contra-ataque neutralizado. A invasão continua.", "success");
   setFeedback("Defensor burlado. Continue a invasão.", "success");
@@ -1174,6 +1234,7 @@ function answerDefenderMinigame(answer) {
 function failDefenderMinigame(reason) {
   clearInterval(state.miniTimerId);
   state.miniGameActive = false;
+  state.miniMaze = null;
   elements.defenderModal.hidden = true;
   state.score = 0;
   state.trace = 100;
@@ -1278,6 +1339,7 @@ function endGame(success, failureMessage = "") {
   clearTimeout(state.defenderTimeoutId);
   clearInterval(state.miniTimerId);
   state.miniGameActive = false;
+  state.miniMaze = null;
   elements.defenderModal.hidden = true;
   if (state.mode === "multi" && state.role === "attacker") {
     sendRoomEvent("game_over", { success, message: failureMessage });
@@ -1394,9 +1456,9 @@ function tokenize(input) {
       const value = word[0].toUpperCase();
       if (value === "NOT" || value === "NAO" || value === "NÃO") {
         tokens.push({ type: tokenTypes.NOT, value: "¬" });
-      } else if (value === "AND" || value === "E") {
+      } else if (value === "AND") {
         tokens.push({ type: tokenTypes.AND, value: "∧" });
-      } else if (value === "OR" || value === "OU" || value === "V") {
+      } else if (value === "OR" || value === "OU") {
         tokens.push({ type: tokenTypes.OR, value: "∨" });
       } else {
         tokens.push({ type: tokenTypes.VAR, value });
@@ -1628,10 +1690,22 @@ elements.variablePad.addEventListener("click", (event) => {
   insertAtCursor(elements.input, button.dataset.insert);
 });
 
-elements.defenderModal.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-mini-answer]");
-  if (!button || !elements.defenderModal.contains(button)) return;
-  answerDefenderMinigame(button.dataset.miniAnswer === "true");
+document.addEventListener("keydown", (event) => {
+  if (!state.miniGameActive) return;
+  const moves = {
+    ArrowUp: [-1, 0],
+    ArrowDown: [1, 0],
+    ArrowLeft: [0, -1],
+    ArrowRight: [0, 1],
+    w: [-1, 0],
+    s: [1, 0],
+    a: [0, -1],
+    d: [0, 1],
+  };
+  const move = moves[event.key] ?? moves[event.key.toLowerCase()];
+  if (!move) return;
+  event.preventDefault();
+  moveMazePlayer(move[0], move[1]);
 });
 
 elements.submit.addEventListener("click", submitExpression);
