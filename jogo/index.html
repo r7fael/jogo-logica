@@ -83,7 +83,12 @@
             <div class="logic-flow" id="logicFlow"></div>
           </div>
 
-          <div class="input-zone">
+          <div id="defenderMonitor" class="defender-monitor" hidden>
+            <label>Bypass do atacante</label>
+            <pre id="attackerDraft">Aguardando digitacao...</pre>
+          </div>
+
+          <div id="attackerInputPanel" class="input-zone">
             <label for="expressionInput">Digite o bypass lógico</label>
             <textarea
               id="expressionInput"
@@ -163,7 +168,7 @@
           <span>DEFENSOR</span>
           <strong id="miniTimer">10s</strong>
         </div>
-        <h2>Contra-ataque no labirinto</h2>
+        <h2 id="miniTitle">Contra-ataque no labirinto</h2>
         <p id="miniQuestion"></p>
         <div class="maze-board" id="miniMaze" aria-label="Labirinto do contra-ataque"></div>
         <div class="mini-values maze-status" id="miniValues"></div>

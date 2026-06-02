@@ -397,6 +397,8 @@ const state = {
   supabaseClient: null,
   players: [],
   waitingForSync: false,
+  attackerDraft: "",
+  miniContext: null,
   missionIndex: 0,
   score: 0,
   trace: 0,
@@ -433,6 +435,9 @@ const elements = {
   stageState: document.querySelector("#stageState"),
   sceneArea: document.querySelector("#sceneArea"),
   logicFlow: document.querySelector("#logicFlow"),
+  attackerInputPanel: document.querySelector("#attackerInputPanel"),
+  defenderMonitor: document.querySelector("#defenderMonitor"),
+  attackerDraft: document.querySelector("#attackerDraft"),
   input: document.querySelector("#expressionInput"),
   variablePad: document.querySelector("#variablePad"),
   submit: document.querySelector("#submitBtn"),
@@ -445,6 +450,7 @@ const elements = {
   finalStats: document.querySelector("#finalStats"),
   restart: document.querySelector("#restartBtn"),
   defenderModal: document.querySelector("#defenderModal"),
+  miniTitle: document.querySelector("#miniTitle"),
   miniTimer: document.querySelector("#miniTimer"),
   miniQuestion: document.querySelector("#miniQuestion"),
   miniValues: document.querySelector("#miniValues"),
@@ -518,6 +524,8 @@ function showModeScreen() {
   clearInterval(state.miniTimerId);
   state.miniGameActive = false;
   state.miniMaze = null;
+  state.miniContext = null;
+  state.attackerDraft = "";
   elements.gameShell.hidden = true;
   elements.modeScreen.hidden = false;
   elements.endModal.hidden = true;
@@ -581,6 +589,8 @@ function startGame() {
   state.trace = 0;
   state.miniGameActive = false;
   state.miniMaze = null;
+  state.miniContext = null;
+  state.attackerDraft = "";
   state.startedAt = Date.now();
   elements.endModal.hidden = true;
   elements.defenderModal.hidden = true;
@@ -600,6 +610,10 @@ function loadMission(options = {}) {
   state.miniMaze = null;
   if (resetInput) {
     elements.input.value = "";
+    if (state.role === "attacker") {
+      state.attackerDraft = "";
+    }
+    renderAttackerDraft();
   }
   elements.missionTitle.textContent = displayTitle;
   elements.missionCounter.textContent = `${state.missionIndex + 1}/${state.activeMissions.length}`;
@@ -630,9 +644,12 @@ function currentMission() {
 
 function updateMultiplayerUI() {
   const multiplayer = state.mode === "multi";
+  const defender = multiplayer && state.role === "defender";
   elements.multiplayerPanel.hidden = !multiplayer;
-  elements.defenderControls.hidden = !(multiplayer && state.role === "defender");
-  elements.input.closest(".input-zone").classList.toggle("locked", multiplayer && state.role !== "attacker");
+  elements.defenderControls.hidden = !defender;
+  elements.attackerInputPanel.hidden = defender;
+  elements.defenderMonitor.hidden = !defender;
+  elements.input.closest(".input-zone").classList.toggle("locked", defender);
   elements.submit.textContent = multiplayer && state.role !== "attacker" ? "Aguardando atacante" : "Executar invasão";
 
   if (!multiplayer) return;
@@ -646,6 +663,12 @@ function updateMultiplayerUI() {
     item.innerHTML = `<strong>${player.name}</strong><span>${player.role === "attacker" ? "Atacante" : "Defensor"}</span>`;
     elements.playersList.appendChild(item);
   });
+  renderAttackerDraft();
+}
+
+function renderAttackerDraft() {
+  if (!elements.attackerDraft) return;
+  elements.attackerDraft.textContent = state.attackerDraft.trim() || "Aguardando digitacao...";
 }
 
 function createGameSnapshot() {
@@ -656,6 +679,7 @@ function createGameSnapshot() {
     trace: state.trace,
     remainingSeconds: state.remainingSeconds,
     startedAt: state.startedAt,
+    attackerDraft: state.attackerDraft,
   };
 }
 
@@ -666,6 +690,7 @@ function applyGameSnapshot(snapshot) {
   state.trace = snapshot.trace;
   state.remainingSeconds = snapshot.remainingSeconds;
   state.startedAt = snapshot.startedAt;
+  state.attackerDraft = snapshot.attackerDraft ?? "";
   state.waitingForSync = false;
   showGameShell();
   loadMission({
@@ -723,6 +748,12 @@ function handleRoomEvent(payload) {
     return;
   }
 
+  if (event.kind === "attacker_typing" && state.role === "defender") {
+    state.attackerDraft = event.value ?? "";
+    renderAttackerDraft();
+    return;
+  }
+
   if (event.kind === "defender_action") {
     applyDefenderAction(event.action, event.senderName);
     return;
@@ -762,7 +793,7 @@ function applyDefenderAction(action, defenderName = "Defensor") {
   failOrContinue();
 }
 
-function runDefenderAction(action) {
+function runDefenderActionImmediate(action) {
   if (state.mode !== "multi" || state.role !== "defender") return;
   if (state.waitingForSync) {
     addLog("[REDE] Aguarde a sincronização da sala antes de defender.", "warn");
@@ -778,6 +809,38 @@ function runDefenderAction(action) {
 
   applyDefenderAction(action, state.playerName);
   sendRoomEvent("defender_action", { action });
+}
+
+function runDefenderAction(action) {
+  if (state.mode !== "multi" || state.role !== "defender") return;
+  if (state.waitingForSync) {
+    addLog("[REDE] Aguarde a sincronizacao da sala antes de defender.", "warn");
+    return;
+  }
+  if (state.miniGameActive) {
+    addLog("[DEFESA] Complete o desafio atual antes de iniciar outra acao.", "warn");
+    return;
+  }
+
+  openDefenderMinigame(createDefenderChallenge(), { type: "defender_action", action });
+}
+
+function completeDefenderAction(action) {
+  if (action === "counter") {
+    const challenge = createDefenderChallenge();
+    sendRoomEvent("counter_challenge", { challenge });
+    addLog("[DEFESA] Desafio concluido. Contra-ataque enviado ao atacante.", "warn");
+    return;
+  }
+
+  applyDefenderAction(action, state.playerName);
+  sendRoomEvent("defender_action", { action });
+}
+
+function defenderActionLabel(action) {
+  if (action === "trace") return "rastreamento";
+  if (action === "time") return "corte de tempo";
+  return "contra-ataque";
 }
 
 function handleRemoteCounterResult(event) {
@@ -1150,20 +1213,33 @@ function triggerDefenderMinigame() {
   openDefenderMinigame(challenge);
 }
 
-function openDefenderMinigame(challenge) {
+function openDefenderMinigame(challenge, context = { type: "attacker_escape" }) {
   const mazeChallenge = challenge?.maze ? challenge : createDefenderChallenge();
   const fallbackLevel = currentMazeLevel();
   state.miniGameActive = true;
+  state.miniContext = context;
   state.miniMaze = mazeChallenge.maze;
   state.miniMazeLabel = mazeChallenge.label ?? fallbackLevel.label;
   state.miniPlayer = { ...mazeChallenge.start };
   state.miniRemainingSeconds = mazeChallenge.seconds ?? fallbackLevel.seconds;
   elements.miniQuestion.textContent = `${state.miniMazeLabel}: leve o pulso de invasão até a saída antes do defensor fechar a rota.`;
+  if (context.type === "defender_action") {
+    elements.miniTitle.textContent = `Acao de defesa: ${defenderActionLabel(context.action)}`;
+    elements.miniQuestion.textContent = `${state.miniMazeLabel}: complete a rota para ativar ${defenderActionLabel(context.action)}.`;
+  } else {
+    elements.miniTitle.textContent = "Contra-ataque no labirinto";
+  }
   renderMazeChallenge();
   elements.miniTimer.textContent = `${state.miniRemainingSeconds}s`;
   elements.defenderModal.hidden = false;
-  addLog("[DEFESA] Contra-ataque em labirinto detectado. Escape da rota ou perca tudo.", "error");
-  pulseStage("error");
+  if (context.type !== "defender_action") {
+    addLog("[DEFESA] Contra-ataque em labirinto detectado. Escape da rota ou perca tudo.", "error");
+  }
+  if (context.type === "defender_action") {
+    addLog(`[DEFESA] Desafio iniciado para ${defenderActionLabel(context.action)}.`, "warn");
+  } else {
+    pulseStage("error");
+  }
 
   clearInterval(state.miniTimerId);
   state.miniTimerId = setInterval(() => {
@@ -1258,10 +1334,16 @@ function moveMazePlayer(rowDelta, colDelta) {
 
 function completeDefenderMinigame() {
   if (!state.miniGameActive) return;
+  const miniContext = state.miniContext;
   clearInterval(state.miniTimerId);
   state.miniGameActive = false;
   state.miniMaze = null;
+  state.miniContext = null;
   elements.defenderModal.hidden = true;
+  if (miniContext?.type === "defender_action") {
+    completeDefenderAction(miniContext.action);
+    return;
+  }
   addLog("[DEFESA] Contra-ataque neutralizado. A invasão continua.", "success");
   setFeedback("Defensor burlado. Continue a invasão.", "success");
   updateLogicFlow(elements.input.value);
@@ -1271,10 +1353,17 @@ function completeDefenderMinigame() {
 }
 
 function failDefenderMinigame(reason) {
+  const miniContext = state.miniContext;
   clearInterval(state.miniTimerId);
   state.miniGameActive = false;
   state.miniMaze = null;
+  state.miniContext = null;
   elements.defenderModal.hidden = true;
+  if (miniContext?.type === "defender_action") {
+    addLog(`[DEFESA] ${reason} Acao cancelada.`, "error");
+    setFeedback("Defensor falhou no desafio. Nenhum efeito aplicado.", "warn");
+    return;
+  }
   state.score = 0;
   state.trace = 100;
   renderScoreboard();
@@ -1350,6 +1439,7 @@ function nextMission() {
   clearInterval(state.timerId);
   clearTimeout(state.defenderTimeoutId);
   clearInterval(state.miniTimerId);
+  state.miniContext = null;
   renderScoreboard();
   setTimeout(() => {
     state.missionIndex += 1;
@@ -1379,6 +1469,7 @@ function endGame(success, failureMessage = "") {
   clearInterval(state.miniTimerId);
   state.miniGameActive = false;
   state.miniMaze = null;
+  state.miniContext = null;
   elements.defenderModal.hidden = true;
   if (state.mode === "multi" && state.role === "attacker") {
     sendRoomEvent("game_over", { success, message: failureMessage });
@@ -1669,7 +1760,15 @@ function insertAtCursor(textarea, value) {
   const cursor = before.length + padded.length;
   textarea.focus();
   textarea.setSelectionRange(cursor, cursor);
-  updateLogicFlow(textarea.value);
+  handleExpressionInput();
+}
+
+function handleExpressionInput() {
+  updateLogicFlow(elements.input.value);
+  if (state.mode === "multi" && state.role === "attacker") {
+    state.attackerDraft = elements.input.value;
+    sendRoomEvent("attacker_typing", { value: state.attackerDraft });
+  }
 }
 
 function setupMatrix() {
@@ -1750,7 +1849,7 @@ document.addEventListener("keydown", (event) => {
 elements.submit.addEventListener("click", submitExpression);
 elements.clear.addEventListener("click", () => {
   elements.input.value = "";
-  updateLogicFlow("");
+  handleExpressionInput();
   elements.input.focus();
 });
 elements.restart.addEventListener("click", () => {
@@ -1765,7 +1864,7 @@ elements.manualCounter.addEventListener("click", () => runDefenderAction("counte
 elements.traceBoost.addEventListener("click", () => runDefenderAction("trace"));
 elements.timeCut.addEventListener("click", () => runDefenderAction("time"));
 elements.leaveRoom.addEventListener("click", () => leaveMultiplayerRoom());
-elements.input.addEventListener("input", () => updateLogicFlow(elements.input.value));
+elements.input.addEventListener("input", handleExpressionInput);
 elements.input.addEventListener("keydown", (event) => {
   if (event.key === "Enter" && (event.ctrlKey || event.metaKey)) {
     submitExpression();
